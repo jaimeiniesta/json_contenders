@@ -27,7 +27,7 @@ end
 
 class Benchmarker
   def single_report
-    puts "\n\nRunning single report..."
+    puts "\n\nRunning single report...\n"
 
     5.times do
       order = RandomOrder.new
@@ -50,7 +50,7 @@ class Benchmarker
   end
 
   def multiple_report
-    puts "\n\nRunning multiple report..."
+    puts "\n\nRunning multiple report...\n"
 
     n = 100_000
 
