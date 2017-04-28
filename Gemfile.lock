@@ -1,0 +1,21 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    avro (1.8.1)
+      multi_json
+    avro_turf (0.8.0)
+      avro (>= 1.7.7, < 1.9)
+      excon (~> 0.45)
+    excon (0.55.0)
+    google-protobuf (3.2.0.2)
+    multi_json (1.12.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  avro_turf
+  google-protobuf
+
+BUNDLED WITH
+   1.14.3
