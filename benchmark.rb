@@ -1,5 +1,7 @@
 require "benchmark"
 require "avro_turf"
+require "google/protobuf"
+require "./proto/order_pb.rb"
 
 class RandomOrder
   def attributes
@@ -38,7 +40,12 @@ class Benchmarker
       start = Time.now
       order.attributes.to_json
       finish = Time.now
-      puts "JSON: #{finish - start} seconds\n\n"
+      puts "JSON: #{finish - start} seconds"
+
+      start = Time.now
+      ProtoOrder.encode(ProtoOrder.new(order.attributes))
+      finish = Time.now
+      puts "PROTOBUF: #{finish - start} seconds\n\n"
     end
   end
 
@@ -50,13 +57,14 @@ class Benchmarker
     Benchmark.bmbm do |x|
       x.report("avro: ") { n.times { avro.encode(RandomOrder.new.attributes, schema_name: "order") } }
       x.report("json: ") { n.times { RandomOrder.new.attributes.to_json } }
+      x.report("protobuf: ") { n.times { ProtoOrder.encode(ProtoOrder.new(RandomOrder.new.attributes)) } }
     end
   end
 
   private
 
   def avro
-    AvroTurf.new(schemas_path: "./avro_schemas/")
+    @avro ||= AvroTurf.new(schemas_path: "./avro_schemas/")
   end
 end
 

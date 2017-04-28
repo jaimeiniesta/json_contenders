@@ -1,0 +1,21 @@
+// https://developers.google.com/protocol-buffers/docs/proto3
+
+syntax = "proto3";
+
+message Order {
+  int32  a = 1;
+  int32  b = 2;
+  int32  c = 3;
+  int32  d = 4;
+  int32  e = 5;
+  int32  f = 6;
+  int32  g = 7;
+  int32  h = 8;
+  int32  i = 9;
+  int32  j = 10;
+  int32  k = 11;
+  int32  l = 12;
+  int32  m = 13;
+  int32  n = 14;
+  string o = 15;
+}
