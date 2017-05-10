@@ -8,6 +8,7 @@ GEM
       excon (~> 0.45)
     excon (0.55.0)
     google-protobuf (3.2.0.2)
+    msgpack (1.1.0)
     multi_json (1.12.1)
 
 PLATFORMS
@@ -16,6 +17,7 @@ PLATFORMS
 DEPENDENCIES
   avro_turf
   google-protobuf
+  msgpack
 
 BUNDLED WITH
    1.14.3

@@ -1,6 +1,7 @@
 require "benchmark"
 require "avro_turf"
 require "avro_turf/messaging"
+require "msgpack"
 require "google/protobuf"
 require "./proto/order_pb.rb"
 
@@ -45,25 +46,35 @@ class Benchmarker
     5.times do
       order = RandomOrder.new
 
+      # AVRO TURF
       start = Time.now
       avro.encode(order.attributes, schema_name: "order")
       finish = Time.now
       puts "AVRO TURF: #{finish - start} seconds"
 
+      # AVRO TURF MESSAGING
       start = Time.now
       avro_messaging.encode(order.attributes, schema_name: "order")
       finish = Time.now
       puts "AVRO TURF MESSAGING: #{finish - start} seconds"
 
+      # JSON
       start = Time.now
       order.attributes.to_json
       finish = Time.now
       puts "JSON: #{finish - start} seconds"
 
+      # PROTOBUF
       start = Time.now
       ProtoOrder.encode(ProtoOrder.new(order.symbol_attributes))
       finish = Time.now
-      puts "PROTOBUF: #{finish - start} seconds\n\n"
+      puts "PROTOBUF: #{finish - start} seconds"
+
+      # MESSAGEPACK
+      start = Time.now
+      MessagePack.pack(order.attributes)
+      finish = Time.now
+      puts "MESSAGEPACK: #{finish - start} seconds\n\n"
     end
   end
 
@@ -77,6 +88,7 @@ class Benchmarker
       x.report("avro turf messaging: ") { n.times { avro_messaging.encode(RandomOrder.new.attributes, schema_name: "order") } }
       x.report("json: ") { n.times { RandomOrder.new.attributes.to_json } }
       x.report("protobuf: ") { n.times { ProtoOrder.encode(ProtoOrder.new(RandomOrder.new.symbol_attributes)) } }
+      x.report("messagepack: ") { n.times { MessagePack.pack(RandomOrder.new.attributes) } }
     end
   end
 end
