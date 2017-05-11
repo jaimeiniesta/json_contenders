@@ -4,6 +4,7 @@ require "avro_turf/messaging"
 require "msgpack"
 require "google/protobuf"
 require "./proto/order_pb.rb"
+require "./thrift/order.rb"
 
 class RandomOrder
   def attributes
@@ -33,11 +34,12 @@ class RandomOrder
 end
 
 class Benchmarker
-  attr_reader :avro, :avro_messaging
+  attr_reader :avro, :avro_messaging, :thrift_serializer
 
-  def initialize(avro:, avro_messaging:)
-    @avro           = avro
-    @avro_messaging = avro_messaging
+  def initialize(avro:, avro_messaging:, thrift_serializer:)
+    @avro              = avro
+    @avro_messaging    = avro_messaging
+    @thrift_serializer = thrift_serializer
   end
 
   def single_report
@@ -57,6 +59,12 @@ class Benchmarker
       avro_messaging.encode(order.attributes, schema_name: "order")
       finish = Time.now
       puts "AVRO TURF MESSAGING: #{finish - start} seconds"
+
+      # THRIFT
+      start = Time.now
+      thrift_serializer.serialize(Thrift::Order.new(order.symbol_attributes))
+      finish = Time.now
+      puts "THRIFT SERIALIZER: #{finish - start} seconds"
 
       # JSON
       start = Time.now
@@ -86,6 +94,7 @@ class Benchmarker
     Benchmark.bmbm do |x|
       x.report("avro turf: ") { n.times { avro.encode(RandomOrder.new.attributes, schema_name: "order") } }
       x.report("avro turf messaging: ") { n.times { avro_messaging.encode(RandomOrder.new.attributes, schema_name: "order") } }
+      x.report("thrift serializer: ") { n.times { thrift_serializer.serialize(Thrift::Order.new(RandomOrder.new.symbol_attributes)) } }
       x.report("json: ") { n.times { RandomOrder.new.attributes.to_json } }
       x.report("protobuf: ") { n.times { ProtoOrder.encode(ProtoOrder.new(RandomOrder.new.symbol_attributes)) } }
       x.report("messagepack: ") { n.times { MessagePack.pack(RandomOrder.new.attributes) } }
@@ -95,7 +104,8 @@ end
 
 bench = Benchmarker.new(avro: AvroTurf.new(schemas_path: "./avro_schemas/"),
                         avro_messaging: AvroTurf::Messaging.new(registry_url: "https://jaimeiniesta:avro@avro-schema-registry.salsify.com/",
-                                                                schemas_path: "./avro_schemas/"))
+                                                                schemas_path: "./avro_schemas/"),
+                        thrift_serializer: Thrift::Serializer.new)
 
 bench.single_report
 bench.multiple_report

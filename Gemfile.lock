@@ -10,6 +10,7 @@ GEM
     google-protobuf (3.2.0.2)
     msgpack (1.1.0)
     multi_json (1.12.1)
+    thrift (0.9.3.0)
 
 PLATFORMS
   ruby
@@ -18,6 +19,7 @@ DEPENDENCIES
   avro_turf
   google-protobuf
   msgpack
+  thrift
 
 BUNDLED WITH
    1.14.3
