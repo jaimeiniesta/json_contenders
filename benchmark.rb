@@ -48,17 +48,17 @@ class Benchmarker
     5.times do
       order = RandomOrder.new
 
-      # AVRO TURF
-      start = Time.now
-      avro.encode(order.attributes, schema_name: "order")
-      finish = Time.now
-      puts "AVRO TURF: #{finish - start} seconds"
-
       # AVRO TURF MESSAGING
       start = Time.now
       avro_messaging.encode(order.attributes, schema_name: "order")
       finish = Time.now
       puts "AVRO TURF MESSAGING: #{finish - start} seconds"
+
+      # AVRO TURF
+      start = Time.now
+      avro.encode(order.attributes, schema_name: "order")
+      finish = Time.now
+      puts "AVRO TURF: #{finish - start} seconds"
 
       # THRIFT
       start = Time.now
@@ -66,17 +66,17 @@ class Benchmarker
       finish = Time.now
       puts "THRIFT SERIALIZER: #{finish - start} seconds"
 
-      # JSON
-      start = Time.now
-      order.attributes.to_json
-      finish = Time.now
-      puts "JSON: #{finish - start} seconds"
-
       # PROTOBUF
       start = Time.now
       ProtoOrder.encode(ProtoOrder.new(order.symbol_attributes))
       finish = Time.now
       puts "PROTOBUF: #{finish - start} seconds"
+
+      # JSON
+      start = Time.now
+      order.attributes.to_json
+      finish = Time.now
+      puts "JSON: #{finish - start} seconds"
 
       # MESSAGEPACK
       start = Time.now
@@ -92,11 +92,11 @@ class Benchmarker
     n = 100_000
 
     Benchmark.bmbm do |x|
-      x.report("avro turf: ") { n.times { avro.encode(RandomOrder.new.attributes, schema_name: "order") } }
       x.report("avro turf messaging: ") { n.times { avro_messaging.encode(RandomOrder.new.attributes, schema_name: "order") } }
+      x.report("avro turf: ") { n.times { avro.encode(RandomOrder.new.attributes, schema_name: "order") } }
       x.report("thrift serializer: ") { n.times { thrift_serializer.serialize(Thrift::Order.new(RandomOrder.new.symbol_attributes)) } }
-      x.report("json: ") { n.times { RandomOrder.new.attributes.to_json } }
       x.report("protobuf: ") { n.times { ProtoOrder.encode(ProtoOrder.new(RandomOrder.new.symbol_attributes)) } }
+      x.report("json: ") { n.times { RandomOrder.new.attributes.to_json } }
       x.report("messagepack: ") { n.times { MessagePack.pack(RandomOrder.new.attributes) } }
     end
   end
