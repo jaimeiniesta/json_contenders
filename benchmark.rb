@@ -5,6 +5,7 @@ require "msgpack"
 require "google/protobuf"
 require "./proto/order_pb.rb"
 require "./thrift/order.rb"
+require "./sparsam/gen-ruby/order_constants.rb"
 
 class RandomOrder
   def attributes
@@ -37,9 +38,9 @@ class Benchmarker
   attr_reader :avro, :avro_messaging, :thrift_serializer
 
   def initialize(avro:, avro_messaging:, thrift_serializer:)
-    @avro              = avro
-    @avro_messaging    = avro_messaging
-    @thrift_serializer = thrift_serializer
+    @avro                       = avro
+    @avro_messaging             = avro_messaging
+    @thrift_serializer          = thrift_serializer
   end
 
   def single_report
@@ -66,6 +67,18 @@ class Benchmarker
       finish = Time.now
       puts "THRIFT SERIALIZER: #{finish - start} seconds"
 
+      # SPARSAM COMPACT
+      start = Time.now
+      Sparsam::Order.new(order.symbol_attributes).serialize(Sparsam::CompactProtocol)
+      finish = Time.now
+      puts "SPARSAM COMPACT SERIALIZER: #{finish - start} seconds"
+
+      # SPARSAM BINARY
+      start = Time.now
+      Sparsam::Order.new(order.symbol_attributes).serialize(Sparsam::BinaryProtocol)
+      finish = Time.now
+      puts "SPARSAM BINARY SERIALIZER: #{finish - start} seconds"
+
       # PROTOBUF
       start = Time.now
       ProtoOrder.encode(ProtoOrder.new(order.symbol_attributes))
@@ -87,14 +100,16 @@ class Benchmarker
   end
 
   def multiple_report
-    puts "\n\nRunning multiple report...\n"
-
     n = 100_000
+
+    puts "\n\nRunning multiple report (#{n} times each)...\n"
 
     Benchmark.bmbm do |x|
       x.report("avro turf messaging: ") { n.times { avro_messaging.encode(RandomOrder.new.attributes, schema_name: "order") } }
       x.report("avro turf: ") { n.times { avro.encode(RandomOrder.new.attributes, schema_name: "order") } }
       x.report("thrift serializer: ") { n.times { thrift_serializer.serialize(Thrift::Order.new(RandomOrder.new.symbol_attributes)) } }
+      x.report("sparsam compact serializer: ") { n.times { Sparsam::Order.new(RandomOrder.new.symbol_attributes).serialize(Sparsam::CompactProtocol) } }
+      x.report("sparsam binary serializer: ") { n.times { Sparsam::Order.new(RandomOrder.new.symbol_attributes).serialize(Sparsam::BinaryProtocol) } }
       x.report("protobuf: ") { n.times { ProtoOrder.encode(ProtoOrder.new(RandomOrder.new.symbol_attributes)) } }
       x.report("json: ") { n.times { RandomOrder.new.attributes.to_json } }
       x.report("messagepack: ") { n.times { MessagePack.pack(RandomOrder.new.attributes) } }

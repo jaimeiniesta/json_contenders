@@ -10,6 +10,7 @@ GEM
     google-protobuf (3.2.0.2)
     msgpack (1.1.0)
     multi_json (1.12.1)
+    sparsam (0.1.4)
     thrift (0.9.3.0)
 
 PLATFORMS
@@ -19,6 +20,7 @@ DEPENDENCIES
   avro_turf
   google-protobuf
   msgpack
+  sparsam
   thrift
 
 BUNDLED WITH
